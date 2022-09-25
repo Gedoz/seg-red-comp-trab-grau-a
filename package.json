@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node main.js"
   },
-  "author": "Pietro Zanandrea",
+  "author": "",
   "license": "ISC",
   "dependencies": {
     "node-fetch": "^2.6.1",
