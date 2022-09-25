@@ -1,0 +1,15 @@
+{
+  "name": "oagenciador-site",
+  "version": "1.0.0",
+  "description": "Site institucional O Agenciador",
+  "main": "index.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "author": "Pietro Zanandrea",
+  "license": "ISC",
+  "dependencies": {
+    "node-fetch": "^2.6.1",
+    "node-nmap": "^4.0.0"
+  }
+}
