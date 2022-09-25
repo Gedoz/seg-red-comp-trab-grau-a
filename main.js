@@ -66,17 +66,17 @@ function getAddressFromHostnames(domains) {
     dns.lookup(domain, (err, address) => {
       console.log(`${index + 1} => ${address}`);
       if (address) {
+        let quickscan = new nmap.NmapScan(`${address} ${domain}`, "-sn");
+        quickscan.on("complete", function (data) {
+          console.log(data);
+        });
+        quickscan.on("error", function (error) {
+          console.log(error);
+        });
+        quickscan.startScan();
       }
     });
   });
-  let quickscan = new nmap.QuickScan(`127.0.0.1 google.com`);
-  quickscan.on("complete", function (data) {
-    console.log(data);
-  });
-  quickscan.on("error", function (error) {
-    console.log(error);
-  });
-  quickscan.startScan();
 }
 
 /*
