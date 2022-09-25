@@ -1,7 +1,7 @@
 {
-  "name": "oagenciador-site",
+  "name": "seg-red-comp-trab-grau-a",
   "version": "1.0.0",
-  "description": "Site institucional O Agenciador",
+  "description": "Segurança de Redes e Computadores - Trabalho Grau A",
   "main": "index.js",
   "scripts": {
     "start": "node main.js"
