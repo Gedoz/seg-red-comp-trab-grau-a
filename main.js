@@ -1,13 +1,23 @@
-const { exec } = require("child_process");
+// const { exec } = require("child_process");
 const fetch = require("node-fetch");
 const dns = require("dns");
-const nmap = require("node-nmap");
-nmap.nmapLocation = "nmap"; //default
+const fs = require("fs");
+const util = require("util");
+const exec = util.promisify(require("child_process").exec);
 
 // sublist3r, binaryedge
 const SEARCH_ENGINE = "binaryedge";
 const BINARYEDGE_X_KEY = "7e7d3177-b0cb-468c-aed5-11c89add1920";
 const DOMAIN = "ftec.com.br";
+
+class DomainProps {
+  domain = "";
+  address = "";
+  port = "";
+  service = "";
+}
+
+let adresses = [];
 
 console.log("Starting script...\n");
 console.log(`Listing domains with ${DOMAIN} ...\n`);
@@ -36,6 +46,7 @@ if (SEARCH_ENGINE === "binaryedge") {
 }
 
 async function getDomainsByBinaryedge() {
+  domains = [];
   const response = await fetch(
     `https://api.binaryedge.io/v2/query/domains/subdomain/${DOMAIN}`,
     {
@@ -57,26 +68,74 @@ async function getDomainsByBinaryedge() {
     return;
   }
 
+  domains = json.events;
   getAddressFromHostnames(json.events);
 }
 
-function getAddressFromHostnames(domains) {
-  domains?.forEach((domain, index) => {
-    console.log(`${index + 1} => ${domain}`);
-    dns.lookup(domain, (err, address) => {
-      console.log(`${index + 1} => ${address}`);
-      if (address) {
-        let quickscan = new nmap.NmapScan(`${address} ${domain}`, "-sn");
-        quickscan.on("complete", function (data) {
-          console.log(data);
-        });
-        quickscan.on("error", function (error) {
-          console.log(error);
-        });
-        quickscan.startScan();
-      }
+async function getAddressFromHostnames(domains) {
+  adresses = [];
+  let _domains = [];
+
+  for (const [index, domain] of domains.entries()) {
+    const address = await onLookup(domain);
+    _domains.push({
+      ...new DomainProps(),
+      address,
+      domain,
     });
+    if (address) {
+      adresses.push(address);
+    }
+  }
+
+  const filteredAdresses = [...new Set(adresses)];
+
+  const fileData = _domains
+    .map((item) => `${item?.domain} - ${item?.address}`)
+    .join("\n");
+
+  saveFile(fileData);
+
+  for (const [index, address] of filteredAdresses.entries()) {
+    const nmap = await scanNampOnAddress(address);
+    console.log(nmap);
+  }
+}
+
+async function onLookup(domain) {
+  return new Promise((resolve) => {
+    dns.lookup(domain, (err, address) => resolve(address));
   });
+}
+
+async function scanNampOnAddress(address) {
+  let seconds = 1;
+  const interval = setInterval(() => {
+    seconds++;
+    process.stdout.clearLine(0);
+    process.stdout.cursorTo(0);
+    process.stdout.write(`Buscando portas do ip ${address}... ${seconds}s`);
+  }, 1000);
+  const { stdout, stderr } = await exec(`nmap -v ${address}`);
+  process.stdout.write("\n");
+  clearInterval(interval);
+  seconds = 1;
+  if (stderr) {
+    return stderr;
+  }
+
+  return stdout;
+}
+
+// função para salvar o arquivo no assets/domains.txt
+function saveFile(data) {
+  try {
+    fs.writeFile("assets/domains.txt", data, function (err) {
+      if (err) throw err;
+    });
+  } catch (error) {
+    throw new Error(error);
+  }
 }
 
 /*
