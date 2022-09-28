@@ -11,10 +11,11 @@ Tecnologia: NodeJS (Javascript) ou Python
 
 Ferramentas: 
 1- Sublist3r (Enumerar os subdomínios)
-2- Subscrever (Enumerar os subdomínios)
+2- SubScraper (Enumerar os subdomínios)
 3- Assetfinder (Enumerar os subdomínios)
-4- nmap (port scan)
-5- httpX (HTTP toolkit)
+4- Binaryedge (Enumerar os subdomínios, API)
+5- nmap (port scan)
+6- httpX (HTTP toolkit)
 
 
 Metodologia:

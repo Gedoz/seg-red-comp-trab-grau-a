@@ -5,10 +5,10 @@ const fs = require("fs");
 const util = require("util");
 const exec = util.promisify(require("child_process").exec);
 
-// sublist3r, binaryedge
+// sublist3r, binaryedge, subscraper, assetfinder
 const SEARCH_ENGINE = "binaryedge";
 const BINARYEDGE_X_KEY = "7e7d3177-b0cb-468c-aed5-11c89add1920";
-const DOMAIN = "ftec.com.br";
+const DOMAIN = "ucs.br";
 
 class DomainProps {
   domain = "";
@@ -23,26 +23,31 @@ console.log("Starting script...\n");
 console.log(`Listing domains with ${DOMAIN} ...\n`);
 
 if (SEARCH_ENGINE === "sublist3r") {
-  exec(
-    `sublist3r -d ${DOMAIN} -o ${DOMAIN.replace(".", "")}.txt`,
-    (error, stderr) => {
-      if (error) {
-        console.log(`error: ${error.message}`);
-        return;
-      }
-      if (stderr) {
-        const response = stderr.split(
-          `[-] Enumerating subdomains now for ${DOMAIN}`
-        );
-        console.log(response[1]);
-        return;
-      }
-    }
-  );
+  getDomainsBySublist3r();
 }
 
 if (SEARCH_ENGINE === "binaryedge") {
   getDomainsByBinaryedge();
+}
+
+if (SEARCH_ENGINE === "subscraper") {
+  //
+}
+
+if (SEARCH_ENGINE === "assetfinder") {
+  //
+}
+
+async function getDomainsBySublist3r() {
+  const { stderr, stdout } = await exec(
+    `sublist3r -d ${DOMAIN} -o ${DOMAIN.replace(".", "")}.txt`
+  );
+  if (stdout) {
+    console.log(`error: ${error.message}`);
+    return;
+  }
+  const response = stderr.split(`[-] Enumerating subdomains now for ${DOMAIN}`);
+  console.log(response[1]);
 }
 
 async function getDomainsByBinaryedge() {
@@ -116,7 +121,7 @@ async function scanNampOnAddress(address) {
     process.stdout.cursorTo(0);
     process.stdout.write(`Buscando portas do ip ${address}... ${seconds}s`);
   }, 1000);
-  const { stdout, stderr } = await exec(`nmap -v ${address}`);
+  const { stdout, stderr } = await exec(`nmap -n ${address}`);
   process.stdout.write("\n");
   clearInterval(interval);
   seconds = 1;
