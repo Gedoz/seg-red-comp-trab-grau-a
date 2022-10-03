@@ -6,7 +6,7 @@ const util = require("util");
 const exec = util.promisify(require("child_process").exec);
 
 // sublist3r, binaryedge, subscraper, assetfinder
-const SEARCH_ENGINE = "binaryedge";
+const SEARCH_ENGINE = "subscraper";
 const BINARYEDGE_X_KEY = "7e7d3177-b0cb-468c-aed5-11c89add1920";
 const DOMAIN = "ucs.br";
 
@@ -31,7 +31,7 @@ if (SEARCH_ENGINE === "binaryedge") {
 }
 
 if (SEARCH_ENGINE === "subscraper") {
-  //
+  getDomainsBySubscraper();
 }
 
 if (SEARCH_ENGINE === "assetfinder") {
@@ -42,12 +42,34 @@ async function getDomainsBySublist3r() {
   const { stderr, stdout } = await exec(
     `sublist3r -d ${DOMAIN} -o ${DOMAIN.replace(".", "")}.txt`
   );
-  if (stdout) {
-    console.log(`error: ${error.message}`);
+  if (stderr) {
+    console.log(stderr);
     return;
   }
-  const response = stderr.split(`[-] Enumerating subdomains now for ${DOMAIN}`);
+  const response = stdout.split(`[-] Enumerating subdomains now for ${DOMAIN}`);
   console.log(response[1]);
+}
+
+async function getDomainsBySubscraper() {
+  const { stderr, stdout } = await exec(
+    `subscraper ${DOMAIN} -r ./assets/subscraper_report.txt`
+  );
+
+  if (stderr) {
+    console.log("error: ", stderr);
+    return;
+  }
+
+  console.log(stdout);
+  const fileText = await readFile("./assets/subscraper_report.txt");
+  const domains = fileText?.split("\n");
+
+  if (!domains?.length) {
+    console.warn("Nenhum resultado encontrado!");
+    return;
+  }
+
+  getAddressFromHostnames(domains);
 }
 
 async function getDomainsByBinaryedge() {
@@ -111,7 +133,7 @@ async function getAddressFromHostnames(domains) {
       let count = nmap.split("\n").length;
 
       while (count != 4) {
-        let advancedInfo = nmap.split("\n")[count]
+        let advancedInfo = nmap.split("\n")[count];
         if (advancedInfo != undefined || advancedInfo != null) {
           if (advancedInfo.includes("/")) {
             advancedInfos = [...advancedInfos, advancedInfo];
@@ -120,9 +142,12 @@ async function getAddressFromHostnames(domains) {
         count--;
       }
     }
-    fileAdvancedData = [...fileAdvancedData, `${domains[index]} - ${address} - ${advancedInfos.join(" - ")}`];
+    fileAdvancedData = [
+      ...fileAdvancedData,
+      `${domains[index]} - ${address} - ${advancedInfos.join(" - ")}`,
+    ];
   }
-  
+
   saveFile("advancedInfos", fileAdvancedData.join("\n"));
 }
 
@@ -157,6 +182,15 @@ function saveFile(name, data) {
     fs.writeFile(`assets/${name}.txt`, data, function (err) {
       if (err) throw err;
     });
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
+async function readFile(path) {
+  try {
+    const response = await fs.readFileSync(path, { encoding: "utf-8" });
+    return response;
   } catch (error) {
     throw new Error(error);
   }
