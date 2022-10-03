@@ -99,12 +99,31 @@ async function getAddressFromHostnames(domains) {
     .map((item) => `${item?.domain} - ${item?.address}`)
     .join("\n");
 
-  saveFile(fileData);
+  saveFile("domains", fileData);
+  let fileAdvancedData = [];
 
   for (const [index, address] of filteredAdresses.entries()) {
     const nmap = await scanNampOnAddress(address);
     console.log(nmap);
+    let advancedInfos = [];
+
+    if (nmap.split("\n")[5]) {
+      let count = nmap.split("\n").length;
+
+      while (count != 4) {
+        let advancedInfo = nmap.split("\n")[count]
+        if (advancedInfo != undefined || advancedInfo != null) {
+          if (advancedInfo.includes("/")) {
+            advancedInfos = [...advancedInfos, advancedInfo];
+          }
+        }
+        count--;
+      }
+    }
+    fileAdvancedData = [...fileAdvancedData, `${domains[index]} - ${address} - ${advancedInfos.join(" - ")}`];
   }
+  
+  saveFile("advancedInfos", fileAdvancedData.join("\n"));
 }
 
 async function onLookup(domain) {
@@ -132,10 +151,10 @@ async function scanNampOnAddress(address) {
   return stdout;
 }
 
-// função para salvar o arquivo no assets/domains.txt
-function saveFile(data) {
+// função para salvar os arquivos em txt
+function saveFile(name, data) {
   try {
-    fs.writeFile("assets/domains.txt", data, function (err) {
+    fs.writeFile(`assets/${name}.txt`, data, function (err) {
       if (err) throw err;
     });
   } catch (error) {
