@@ -6,9 +6,9 @@ const util = require("util");
 const exec = util.promisify(require("child_process").exec);
 
 // sublist3r, binaryedge, subscraper, assetfinder
-const SEARCH_ENGINE = "subscraper";
+const SEARCH_ENGINE = "assetfinder";
 const BINARYEDGE_X_KEY = "7e7d3177-b0cb-468c-aed5-11c89add1920";
-const DOMAIN = "ucs.br";
+const DOMAIN = "terra.com.br";
 
 class DomainProps {
   domain = "";
@@ -35,12 +35,26 @@ if (SEARCH_ENGINE === "subscraper") {
 }
 
 if (SEARCH_ENGINE === "assetfinder") {
-  //
+  getDomainsByAssetfinder()
+}
+
+async function getDomainsByAssetfinder() {
+  const { stderr, stdout } = await exec(
+    `assetfinder -subs-only ${DOMAIN}`
+  );
+  if (stderr) {
+    console.log(stderr);
+    return;
+  }
+  if (stdout) {
+    console.log(stdout);
+    saveFile("domains", stdout);
+  }
 }
 
 async function getDomainsBySublist3r() {
   const { stderr, stdout } = await exec(
-    `sublist3r -d ${DOMAIN} -o ${DOMAIN.replace(".", "")}.txt`
+    `sublist3r -d ${DOMAIN} -o ./assets/domains.txt`
   );
   if (stderr) {
     console.log(stderr);
