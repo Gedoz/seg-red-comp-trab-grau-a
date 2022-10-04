@@ -44,10 +44,8 @@ async function getDomainsByAssetfinder() {
     console.log(stderr);
     return;
   }
-  if (stdout) {
-    console.log(stdout);
-    saveFile("domains", stdout);
-  }
+  const domains = stdout?.split("\n");
+  getAddressFromHostnames(domains);
 }
 
 async function getDomainsBySublist3r() {
