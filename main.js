@@ -35,13 +35,11 @@ if (SEARCH_ENGINE === "subscraper") {
 }
 
 if (SEARCH_ENGINE === "assetfinder") {
-  getDomainsByAssetfinder()
+  getDomainsByAssetfinder();
 }
 
 async function getDomainsByAssetfinder() {
-  const { stderr, stdout } = await exec(
-    `assetfinder -subs-only ${DOMAIN}`
-  );
+  const { stderr, stdout } = await exec(`assetfinder -subs-only ${DOMAIN}`);
   if (stderr) {
     console.log(stderr);
     return;
@@ -54,14 +52,23 @@ async function getDomainsByAssetfinder() {
 
 async function getDomainsBySublist3r() {
   const { stderr, stdout } = await exec(
-    `sublist3r -d ${DOMAIN} -o ./assets/domains.txt`
+    `sublist3r -d ${DOMAIN} -o ./assets/sublist3r_report.txt`
   );
   if (stderr) {
-    console.log(stderr);
+    console.error(stderr);
     return;
   }
-  const response = stdout.split(`[-] Enumerating subdomains now for ${DOMAIN}`);
-  console.log(response[1]);
+
+  console.log(stdout);
+  const fileText = await readFile("./assets/sublist3r_report.txt");
+  const domains = fileText?.split("\n");
+
+  if (!domains?.length) {
+    console.warn("Nenhum resultado encontrado!");
+    return;
+  }
+
+  getAddressFromHostnames(domains);
 }
 
 async function getDomainsBySubscraper() {
